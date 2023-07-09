@@ -1,0 +1,342 @@
+sqlplus sys as sysdba
+Mnikhil1011
+
+alter session set "_oracle_script"=true;
+create user mnikhil1011 identified by mnikhil1011;
+grant connect to mnikhil1011;
+grant all privileges to mnikhil1011;
+
+
+
+
+
+
+
+
+---
+
+create table user_table (
+
+adhar_id number primary key,
+user_name varchar(15),
+user_id varchar(15),
+user_password varchar(15),
+age number,
+add_city varchar(15),
+add_state varchar(15),
+add_street varchar(15),
+add_pincode number,
+add_doorno number
+
+);
+
+create table user_phno
+(
+aid number,
+phone_no number
+);
+alter table user_phno add constraint user_phno_con1 primary key (aid,phone_no);
+alter table user_phno add constraint user_phno_con2 foreign key(aid) references user_table(adhar_id);
+
+
+create table db_manager 
+(
+    aid number primary key
+);
+alter table db_manager add constraint db_manager_con1 foreign key(aid) references user_table(adhar_id);
+
+create table dba
+(
+    aid number primary key
+) ;   
+alter table dba add constraint dba_con1 foreign key(aid) references user_table(adhar_id);
+
+desc db_manager;
+
+create table property (
+
+aid number,
+property_id number primary key,
+rent_per_month number,
+percentage_hike number,
+add_state varchar(15),
+add_city varchar(15),
+add_streetname varchar(15),
+add_pincode number,
+add_doorno number,
+floor_no number,
+available_from date,
+available_to date,
+plith_area number,
+total_area number,
+type_id number,
+no_of_rooms number
+);
+alter table property add constraint property_con1 foreign key(aid) references user_table(adhar_id);
+create table type_table
+(
+type_id number primary key,
+type_name varchar(10)
+);
+
+alter table property add constraint property_con2 foreign key(type_id) references type_table(type_id);
+
+create table rent_history (
+aid number,
+pid number,
+start_date date,
+end_date date,
+hike number,
+agency varchar(15),
+rent_per_month number
+);
+alter table rent_history add constraint rent_history_con1 primary key (aid ,pid,start_date) ;
+alter table rent_history add constraint rent_history_con2 foreign key (aid) references user_table(adhar_id);
+alter table rent_history add constraint rent_history_con3 foreign key (pid) references property(property_id);
+
+
+create or replace PROCEDURE insertpropertyrecord(aid1 in number,property_id1 in number,rent_per_month1 in number,percentage_hike1 in number,add_state1 in varchar ,add_city1 in varchar,add_streetname1 varchar,add_pincode1 in number,add_doorno1 in number,floor_no1 in number,available_from1 in date,available_to1 in date,plith_area1 in number,total_area1 in number,type_id1 in number,no_of_rooms1 in number )is 
+begin 
+insert into property(aid ,property_id ,rent_per_month ,percentage_hike ,add_state ,add_city ,add_streetname ,add_pincode ,add_doorno ,floor_no ,available_from ,available_to ,plith_area ,total_area ,type_id ,no_of_rooms) 
+values
+(aid1 ,property_id1 ,rent_per_month1 ,percentage_hike1 ,add_state1 ,add_city1 ,add_streetname1,add_pincode1 ,add_doorno1 ,floor_no1 ,available_from1 ,available_to1 ,plith_area1 ,total_area1 ,type_id1 ,no_of_rooms1 );
+end;
+/
+
+create or replace PROCEDURE createnewuser(adhar_id1 in number ,user_name1 in varchar,user_id1 in varchar,user_password1 in varchar,age1 in number,add_city1 in varchar,add_state1 in varchar,add_street1 in varchar,add_pincode1 in number,add_doorno1 in number) as
+begin
+insert into user_table(adhar_id ,user_name ,user_id ,user_password ,age ,add_city ,add_state ,add_street ,add_pincode ,add_doorno)
+values
+(adhar_id1 ,user_name1 ,user_id1 ,user_password1 ,age1 ,add_city1 ,add_state1 ,add_street1 ,add_pincode1 ,add_doorno1 );
+
+end;
+/
+
+commit;
+
+create or replace trigger maxdba before insert on dba 
+declare
+x number;
+begin
+select count(*) into x from dba;
+IF x >= 1 THEN
+    RAISE_APPLICATION_ERROR(-20001, 'Cannot add more than 1 row to emp table');
+  END IF;
+end;
+/
+
+
+exec createnewuser(20008,'mehul','tambi','tambi123',21,'jaipur','rajasthan','sher baazar',123223,098);
+
+
+set SERVEROUTPUT on;
+
+
+
+
+2)
+create or replace NONEDITIONABLE PROCEDURE getpropertyrecord(aid1 number) is
+property_id1 number;
+rent_per_month1 number;
+percentage_hike1 number;
+add_state1 varchar(15);
+add_city1 varchar(15);
+add_streetname1 varchar(15);
+add_pincode1 number;
+add_doorno1 number;
+floor_no1 number;
+available_from1 date;
+available_to1 date;
+plith_area1 number;
+total_area1 number;
+type_id1 number;
+no_of_rooms1 number;
+ans number;
+cursor printer is
+select property_id ,rent_per_month ,percentage_hike ,add_state ,add_city ,add_streetname ,add_pincode ,add_doorno ,floor_no ,available_from ,available_to ,plith_area ,total_area ,type_id ,no_of_rooms
+from property 
+where aid=aid1;
+
+begin
+select count(*) into ans from property where aid1=aid;
+
+if ans>0 then
+open printer;
+loop 
+fetch printer into property_id1,rent_per_month1,percentage_hike1 ,add_state1 ,add_city1,add_streetname1 ,add_pincode1,add_doorno1,floor_no1,available_from1,available_to1,plith_area1 ,total_area1 ,type_id1 ,no_of_rooms1 ;
+exit when printer%notfound;
+begin
+dbms_output.put_line('pid:' || property_id1 ||' rent_per_month:' || rent_per_month1 || ' percentage_hike:' || percentage_hike1 || ' add_state:' || add_state1 || ' add_city:' || add_city1 || ' add_streetname: ' ||add_streetname1 || ' add_pincode:'||add_pincode1||' add_doorno1:' ||add_doorno1 ||' available_from1:'||available_from1||'  available_to1:'||available_to1||' plith_area:'||plith_area1||' total_area1:'||total_area1||' type:'||type_id1||' no_of_rooms:'||no_of_rooms1);
+end;
+
+end loop;
+close printer;
+
+else
+dbms_output.put_line('no property');
+end if;
+end;
+/
+
+
+
+
+exec insertpropertyrecord(11221,1,20000,5,'maharashtra','pune','hadapsar','411028','1102','11', to_date('25-02-2023','dd-mm-yyyy'), to_date('25-12-2023','dd-mm-yyyy'),110,2000,1,3);
+exec getpropertyrecord(11221);
+
+
+
+
+3)
+
+create or replace NONEDITIONABLE procedure getuserdetails(aid1 number) as
+user_name1 varchar(15);
+user_id1 varchar(15);
+age1 number;
+add_city1 varchar(15);
+add_state1 varchar(15);
+add_street1 varchar(15);
+add_pincode1 number;
+add_doorno1 number;
+ans number;
+begin 
+select count(*)into ans from user_table where adhar_id=aid1;
+if(ans>0) then
+
+SELECT user_name ,user_id ,age ,add_city,add_state ,add_street ,add_pincode ,add_doorno into user_name1 ,user_id1 ,age1 ,add_city1,add_state1 ,add_street1 ,add_pincode1 ,add_doorno1
+from user_table
+where adhar_id=aid1;
+begin
+dbms_output.put_line('user name: '||user_name1||' user_id: '||user_id1||' age: '||age1||' add_city: '||add_city1|| ' add_state: '||add_state1||'  add_street: '||add_street1||' add_pincode: '||add_pincode1||' add_doorno:'||add_doorno1);
+end;
+else
+dbms_output.put_line('no such value');
+end if;
+
+end;
+
+
+
+create or replace procedure gettenantdetails(pid1 number) as
+aid1 number;
+end_date1 date;
+ans number;
+begin
+select count(*) into ans from rent_history where pid1=pid;
+if(ans>0)THEN
+
+select aid into aid1 
+from rent_history
+where pid1=pid and end_date > (SELECT CURRENT_DATE from dual);
+getuserdetails(aid1);
+else 
+begin
+dbms_output.put_line('no such record');
+end;
+end if;
+end;
+/
+
+
+
+
+
+create or replace procedure  searchpropertyforrent(city1 varchar)as
+ans number;
+property_id1 number;
+rent_per_month1 number;
+percentage_hike1 number;
+add_state1 varchar(15);
+add_city1 varchar(15);
+add_streetname1 varchar(15);
+add_pincode1 number;
+add_doorno1 number;
+floor_no1 number;
+available_from1 date;
+available_to1 date;
+plith_area1 number;
+total_area1 number;
+type_id1 number;
+no_of_rooms1 number;
+cursor printer is
+select property_id ,rent_per_month ,percentage_hike ,add_state ,add_city ,add_streetname ,add_pincode ,add_doorno ,floor_no ,available_from ,available_to ,plith_area ,total_area ,type_id ,no_of_rooms
+from property 
+where add_city=city1;
+begin
+
+
+select count(*) into ans from property where add_city=city1;
+if ans>0 then
+open printer;
+loop 
+fetch printer into property_id1,rent_per_month1,percentage_hike1 ,add_state1 ,add_city1,add_streetname1 ,add_pincode1,add_doorno1,floor_no1,available_from1,available_to1,plith_area1 ,total_area1 ,type_id1 ,no_of_rooms1 ;
+exit when printer%notfound;
+begin
+dbms_output.put_line('pid:' || property_id1 ||' rent_per_month:' || rent_per_month1 || ' percentage_hike:' || percentage_hike1 || ' add_state:' || add_state1 || ' add_city:' || add_city1 || ' add_streetname: ' ||add_streetname1 || ' add_pincode:'||add_pincode1||' add_doorno1:' ||add_doorno1 ||' available_from1:'||available_from1||'  available_to1:'||available_to1||' plith_area:'||plith_area1||' total_area1:'||total_area1||' type:'||type_id1||' no_of_rooms:'||no_of_rooms1);
+end;
+end loop;
+close printer;
+
+else
+dbms_output.put_line('no property in this location');
+end if;
+
+end;
+/
+
+
+
+
+create or replace procedure getrenthistory(pid1 number) as
+ans number;
+
+aid1 number;
+start_date1 date;
+end_date1 date;
+hike1 number;
+agency1 varchar(15);
+rent_per_month1 number;
+
+cursor printer is select 
+aid ,start_date ,end_date,hike ,agency,rent_per_month
+from rent_history where pid=pid1;
+
+begin
+select count(*) into ans from rent_history where pid=pid1;
+if ans>0 then
+open printer;
+loop 
+fetch printer into aid1 ,start_date1 ,end_date1,hike1 ,agency1,rent_per_month1;
+exit when printer%notfound;
+begin
+dbms_output.put_line(' aid: '||aid1||' start_date: '||start_date1||' end_date1: ' ||end_date1||' hike: '||hike1||' agency: ' ||agency1||' rent_per_month: '||rent_per_month1 );
+end;
+end loop;
+close printer;
+else
+dbms_output.put_line('this has never been rented');
+end if;
+end;
+/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+=====
+
+
+
+
